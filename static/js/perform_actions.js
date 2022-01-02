@@ -2,16 +2,20 @@ var liked_news = [];
 var liked_cat = [];
 
 $(document).ready(function() {
-    // all custom jQuery will go here
+        // all custom jQuery will go here
+
+        // post on click of get more recommendations button
         $('#recommend_btn').click(function() {
-        let js_data = JSON.stringify(liked_news);
-        let unique_cat = [...new Set(liked_cat)];
-        let js_cat = JSON.stringify(unique_cat);
-        console.log("Sending request ...")
-        const send_data = {
-            d1: js_data,
-            d2: js_cat
-        };
+            // convert input to strings
+            let js_data = JSON.stringify(liked_news);
+            let unique_cat = [...new Set(liked_cat)];
+            let js_cat = JSON.stringify(unique_cat);
+            const send_data = {
+                d1: js_data,
+                d2: js_cat
+            };
+
+            // AJAX post request initialization
             $.ajax({
             type: "POST",
             contentType: "application/json;charset=utf-8",
@@ -29,7 +33,7 @@ $(document).ready(function() {
     });
 });
 
-<!-- Like button code -->
+// retrieve data from rows when user likes/unlikes an article and store for processing
 function toggleLike(clicked_btn) {
         let row = clicked_btn.closest("tr");
         let row_data = row.getElementsByTagName("td");
@@ -53,23 +57,6 @@ function toggleLike(clicked_btn) {
             }
       });
 }
-
-function getRecommendations() {
-        let js_data = JSON.stringify(liked_news);
-        console.log("Stringified news: ", js_data)
-        $.ajax({
-            url: '/news_recommender',
-            type : 'post',
-            contentType: 'application/json',
-            dataType : 'json',
-            data : js_data,
-        }).done(function(result) {
-            console.log(result);
-            $("#data").html(result);
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.log("fail: ",textStatus, errorThrown);
-        });
-};
 
 
 
