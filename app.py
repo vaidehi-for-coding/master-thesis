@@ -1,15 +1,16 @@
 # flask imports
 from flask import Flask, render_template, request
 from flask_cors import CORS
+
 # python imports
 from sentence_transformers import SentenceTransformer
-from sbert_recsys_t1 import *
+from sbert_recsys import *
 import json
 
 app = Flask(__name__)
 CORS(app)
 
-SERENDIPITY = True
+SERENDIPITY = False
 
 # column headings for html page (display name and internal name)
 disp_headings = ["Headline", "Snippet", "Link", "Category", "Like it?"]
@@ -38,7 +39,7 @@ all_corpus_embeddings = np.load(CORPUS_EMBEDDINGS)
 df["rate"] = ''
 
 
-# home page definition
+# home page
 @app.route('/', methods=['GET'])
 def main():
     if SERENDIPITY:
@@ -47,22 +48,24 @@ def main():
         return render_template("about_only_rc.html")
 
 
+# instructions page
 @app.route('/instructions', methods=['POST', 'GET'])
 def instructions():
     return render_template("about_us.html")
 
 
+# recommendations page
 @app.route('/news_recommender', methods=['POST', 'GET'])
 def rerouted():
     if request.method == 'GET':
         n = 2  # no of samples from each category
         to_display_df = df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(drop=True)
-        return render_template("main_2.html", column_names=disp_headings,
+        return render_template("news_table.html", column_names=disp_headings,
                                row_data=list(to_display_df[act_heading].values.tolist()),
                                like_col="Like it?", link_col="Link", zip=zip)
     else:
         predictions = recommend_movies()
-        return render_template("main_2.html", column_names=disp_headings_2,
+        return render_template("news_table.html", column_names=disp_headings_2,
                                row_data=list(predictions[act_heading_2].values.tolist()),
                                like_col="Like it?", link_col="Link", zip=zip)
 
