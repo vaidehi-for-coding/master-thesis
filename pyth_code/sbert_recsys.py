@@ -1,31 +1,40 @@
+# python imports
+from datetime import datetime
 import pandas as pd
 import scipy
 from torch import reshape as trs
 import numpy as np
+import os
 
-NEWS_ARTICLES_JSON = "https://recsysfiles.s3.eu-central-1.amazonaws.com/huffpost_dataset.json"
+# stored dataset
+NEWS_ARTICLES_JSON = "huffpost_dataset.json"
 
+
+# returns cleaned dataframe
 def get_df():
     news = pd.read_json(NEWS_ARTICLES_JSON, lines=True)
     news = clean_df(news)
     return news
 
 
+# cleans the loaded dataframe
 def clean_df(df):
     df = df[df['date'] >= pd.Timestamp(2012, 1, 1)]
-    df = df[df['headline'].apply(lambda x: len(x.split()) > 5)]
-    df = df[df['short_description'].apply(lambda x: len(x.split()) > 1)]
+    df = df[df['headline'].apply(lambda x: len(x.split()) > 5)]  # remove all headlines shorter than 5 words
+    df = df[df['short_description'].apply(lambda x: len(x.split()) > 1)]  # remove all desc shorter than 5 words
     df.sort_values('headline', inplace=True, ascending=False)
-    duplicated_articles_series = df.duplicated('headline', keep=False)
+    duplicated_articles_series = df.duplicated('headline', keep=False)  # remove all duplicate headlines
     df = df[~duplicated_articles_series]
-    df.index = range(df.shape[0])
+    df.index = range(df.shape[0])  # reindex the dataframe
     return df
 
 
+# returns a sorted hashmap of article index vs cosine similarity (highest to lowest) and unexpected article indices
 def get_recommendations(queries, query_embeddings, all_corpus_embeddings, prev_liked, prev_rec, closest_n, serendipity):
-    # get cosine similarities for all articles
     all_results = []
     unexpected_indices = []
+
+    # for each headline, store the similarity against every article in the dataframe (highest to lowest)
     for query, query_embedding in zip(queries, query_embeddings):
         distances = scipy.spatial.distance.cdist(trs(query_embedding, (1, query_embedding.shape[0])),
                                                  all_corpus_embeddings,
@@ -51,6 +60,7 @@ def get_recommendations(queries, query_embeddings, all_corpus_embeddings, prev_l
     return remaining_articles, unexpected_indices
 
 
+# return articles that would be unexpected based on current choices
 def get_unexpected_recs(cosine_sim_list, n_liked_items):
     sorted_articles = []
 
@@ -63,7 +73,7 @@ def get_unexpected_recs(cosine_sim_list, n_liked_items):
     for row in sorted_articles:
         item_item_mat.append([sim[1] for sim in row])
 
-    # calcuate unexpectedness of each article
+    # calculate unexpectedness of each article
     unexpectedness = 1 - (np.sum(item_item_mat, axis=0) / n_liked_items)
     unexpectedness = np.around(unexpectedness, decimals=4)
     idx_min = np.argpartition(unexpectedness, 2)
@@ -74,7 +84,8 @@ def get_unexpected_recs(cosine_sim_list, n_liked_items):
     return unexpected_indices_act
 
 
-def get_combined_articles(queries, df, previously_liked_news):
+# return headline and desc combined into a single sentence
+def get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score):
     # combine desc and headline and store index of previously liked articles
     combined_articles = []
     for i in range(len(queries)):
@@ -83,12 +94,16 @@ def get_combined_articles(queries, df, previously_liked_news):
         heads = df.at[article_number[0], 'headline']
         combined_articles.append((heads + " " + queries[i]))
 
+        if article_number[0] in serendipitious_articles:
+            s_score.append(article_number[0])
+
     return combined_articles
 
 
+# return final article indices to be recommended
 def get_final_rec_indices(filtered_rec_list, closest_n, unexp_list, query_categories, SERENDIPITY, df):
     rec_indices = []
-    cos_sim = []
+    # cos_sim = []
 
     # aggressively recommend articles from the same category
     for each_query_result in filtered_rec_list:
@@ -97,22 +112,35 @@ def get_final_rec_indices(filtered_rec_list, closest_n, unexp_list, query_catego
             if df.at[idx, 'category'] in query_categories:
                 # if (1 - distance) >= 0.5:
                 rec_indices.append(idx)
-                cos_sim.append(1 - distance)
+                # cos_sim.append(1 - distance)
                 count += 1
             if count == closest_n:
                 break
 
     rec_np = np.array(rec_indices)
-    sim_np = np.array(cos_sim)
+    # sim_np = np.array(cos_sim)
     p = np.random.permutation(len(rec_np))
     rec_np = rec_np[p].tolist()
-    sim_np = sim_np[p].tolist()
+    # sim_np = sim_np[p].tolist()
 
     if SERENDIPITY:
         rec_np = rec_np[:8]
-        sim_np = sim_np[:8]
-        rec_np.extend(unexp_list)
-        sim_np.extend([0, 0])
-        return rec_np, sim_np
+        # sim_np = sim_np[:8]
+        # insert unexpected news at 3rd and 6th position in recommendations
+        recs_shuffled = rec_np[:2] + [unexp_list[0]] + rec_np[2:4] + [unexp_list[1]] + rec_np[4:8]
+        # sim_np.extend([0, 0])
+        return recs_shuffled
     else:
-        return rec_np[:10], sim_np[:10]
+        return rec_np[:10]
+
+
+def write_to_file(user_id, prev_liked, prev_rec, serendipitous_articles, recommender):
+    # datetime object containing current date and time
+    now = datetime.now()
+    dt_string = now.strftime("%d%m%Y%H%M%S")
+    file_name = f'{os.getcwd()}/data/{user_id}_{dt_string}_{recommender}.txt'
+    with open(file_name, 'w') as f:
+        f.write("Liked article indices: " + ' '.join(str(elem) for elem in prev_liked))
+        f.write("\nRecommended articles indices: " + ' '.join(str(elem) for elem in prev_rec))
+        f.write("\nSerendipitous articles that were liked indices: " + ' '.join(str(elem) for elem in serendipitous_articles))
+        f.close()

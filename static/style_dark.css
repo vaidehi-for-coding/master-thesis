@@ -42,13 +42,17 @@ h2 {
     text-align: center;
 }
 
+/* doesn't work on edge and chrome */
+.news_table thead tr th{
+    position: sticky;
+    top: 0;
+}
+
 .news_table th h1 {
     font-weight: bold;
 	font-size: 1.5em;
     color: #185875;
     text-align: center;
-    position: relative;
-    top: 0;
 }
 
 .news_table td {
@@ -181,16 +185,34 @@ h2 {
 }
 
 
-like_btn{
-  cursor: pointer;
-  outline: 0;
-  color: #AAA;
-}
+/*like_btn{*/
+/*    cursor: pointer;*/
+/*    outline: 0;*/
+/*    color: #AAA;*/
+/*}*/
 
 .btn:focus {
-  outline: none;
+  outline: white;
 }
 
 .green{
-  color: green;
+  color: #74ee15;
 }
+
+#loading{
+    position:absolute;
+    display: block;
+    text-align: center;
+    padding:0;
+    margin-left: fill;
+    margin-right: fill;
+    margin-top: fill;
+    opacity: 0.5;
+    background-color: #fff;
+    visibility: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+
+

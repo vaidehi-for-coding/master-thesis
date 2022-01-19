@@ -34,6 +34,14 @@ p{
     padding-right: 10%;
 }
 
+img{
+    width: 800px;
+    height: auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 h2 {
     font-size:1em;
     font-weight: 300;

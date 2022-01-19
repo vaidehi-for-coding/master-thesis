@@ -9,9 +9,10 @@
 <title>News Recommender</title>
 </head>
     <body>
+        <div id="loading"></div>
         <div id="elementToUpdate">
             <h1>
-                <span class="blue">&lt;</span>NEWS<span class="blue">&gt;</span>
+                <span class="blue">&lt;</span>NEWS<span class="blue">></span>
                 <span class="yellow">Recommender</span>
             </h1>
             <h2>Recommender 2<span class="red"> (R2)</span></h2>
@@ -31,9 +32,8 @@
                                 {% for col, row_ in zip(column_names, row) %}
                                     {% if col == like_col %}
                                         <td>
-                                            <button class="like_btn" id="green" onclick="toggleLike(this)">
-                                                <i class="fa fa-thumbs-up fa-lg" aria-hidden="true"></i>
-                                            </button>
+                                            <i class="fa fa-thumbs-up fa-lg" id="green" title="double-click!" aria-hidden="true" onclick="toggleLike(this)">
+                                            </i>
                                         </td>
                                     {% elif col == link_col %}
                                         <td>
@@ -53,6 +53,12 @@
             <div class="container">
                 <a href="#" id="recommend_btn_nr2"><span>Get Recommendations</span></a>
             </div>
+
+            <br><br>
+
+             <div class="container">
+                <a href="/survey" id="survey-btn" target="_blank"><span>Go to Survey</span></a>
+             </div>
 
         </div>
     </body>
