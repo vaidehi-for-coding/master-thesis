@@ -12,7 +12,7 @@ import random
 application = app = Flask(__name__)
 CORS(application)
 
-SERENDIPITY = False
+SERENDIPITY = True
 
 # column headings for html page (display name and internal name)
 disp_headings = ["Headline", "Snippet", "Link", "Category", "Like it?"]
