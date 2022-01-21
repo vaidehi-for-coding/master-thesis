@@ -74,7 +74,7 @@ def filterbubble():
 # survey page
 @application.route('/survey', methods=['POST', 'GET'])
 def go_to_survey():
-    if len(nInteractionsWithR2) < 1:
+    if len(nInteractionsWithR2) < 5:
         err_int = str(len(nInteractionsWithR2))
         return jsonify(message='Please interact with R2 at least 5 times. Your interactions: ' + err_int), 500
     else:
@@ -152,7 +152,7 @@ def recommend_movies(serendipity):
 def nr2():
     serendipity = True
     if request.method == 'GET':
-        if len(nInteractionsWithR1) < 1:
+        if len(nInteractionsWithR1) < 5:
             err_int = str(len(nInteractionsWithR1))
             return jsonify(message='Please interact with R1 at least 5 times. Your interactions: ' + err_int), 500
         else:
