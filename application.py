@@ -1,5 +1,5 @@
 # flask imports
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 from flask_cors import CORS
 
 # python imports
@@ -8,8 +8,10 @@ from pyth_code.sbert_recsys import *
 import json
 import string
 import random
+import webbrowser
 
 application = app = Flask(__name__)
+application.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 CORS(application)
 
 SERENDIPITY = False
@@ -26,10 +28,14 @@ CORPUS_EMBEDDINGS = "all-MiniLM-L6-v2-embeddings-2012-all-combined.npy"
 closest_n = 10
 # stores indices of previously liked articles
 previously_liked_news = []
+# stores how many articles were liked in each interaction
+articles_liked_per_interaction = []
 # stores indices of previously recommended news
 previously_rec_news = []
 # stores indices of unexpected articles that were liked
 serendipitious_articles = []
+# stores how many unexpected articles were liked in each interaction
+unexp_articles_liked_per_interaction = []
 # stores number of times the unexpected articles were liked
 s_score = []
 # store number of interactions with nr1
@@ -74,27 +80,23 @@ def filterbubble():
 # survey page
 @application.route('/survey', methods=['POST', 'GET'])
 def go_to_survey():
-    if len(nInteractionsWithR2) < 1:
+    if len(nInteractionsWithR2) < 5:
         err_int = str(len(nInteractionsWithR2))
-        return jsonify(message='Please interact with R2 at least 5 times. Your interactions: ' + err_int), 500
+        err_stmt = "PLEASE INTERACT WITH R2 AT LEAST 5 TIMES. YOU INTERACTED: " + err_int + " TIMES"
+        return render_template("fail_interactions.html", error_statement=err_stmt)
     else:
-        write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score, "R2")
+        write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score, "R2",
+                      articles_liked_per_interaction, unexp_articles_liked_per_interaction, nInteractionsWithR1, nInteractionsWithR2)
         if SERENDIPITY:
-            # webbrowser.open("https://limesurvey.digitaltransformation.bayern/index.php/178969", new=1, autoraise=True)
-            return jsonify(
-                message='Success. Please fill out the survey at '
-                        'https://limesurvey.digitaltransformation.bayern/index.php/178969 to '
-                        'complete the last step in this study. Provide '
-                        'the following details in the first and second question of the questionnaire. Study_id: ' + unq_id +
-                        ' s_score: ' + str(len(s_score)))
+            survey_link = "http://limesurvey.digitaltransformation.bayern/index.php/353413?lang=en&studyID=" + unq_id + \
+                          "&sScore=" + str(len(s_score))
+            webbrowser.open(survey_link, new=1, autoraise=True)
+            return render_template("survey.html", survey_link=survey_link)
         else:  # go to some other link
-            # webbrowser.open("https://limesurvey.digitaltransformation.bayern/index.php/917924", new=0, autoraise=True)
-            return jsonify(
-                message='Success. Please fill out the survey at '
-                        'https://limesurvey.digitaltransformation.bayern/index.php/917924 to '
-                        'complete the last step in this study. Provide '
-                        'the following details in the first and second question of the questionnaire. Study_id: ' + unq_id +
-                        ' s_score: ' + str(len(s_score)))
+            survey_link = "http://limesurvey.digitaltransformation.bayern/index.php/917924?lang=en&studyID=" + unq_id + \
+                          "&sScore=" + str(len(s_score))
+            webbrowser.open(survey_link, new=1, autoraise=True)
+            return render_template("survey.html", survey_link=survey_link)
 
 
 # recommendations page
@@ -121,7 +123,7 @@ def recommend_movies(serendipity):
     query_categories = json.loads(request_data['d2'])  # cat
 
     # combine desc and headline for better semantic similarity measure
-    combined_queries = get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score)
+    combined_queries = get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score, articles_liked_per_interaction, unexp_articles_liked_per_interaction)
 
     # create embeddings for liked news
     query_embeddings = model.encode(combined_queries, convert_to_tensor=True)
@@ -152,11 +154,14 @@ def recommend_movies(serendipity):
 def nr2():
     serendipity = True
     if request.method == 'GET':
-        if len(nInteractionsWithR1) < 1:
+        if len(nInteractionsWithR1) < 5:
             err_int = str(len(nInteractionsWithR1))
-            return jsonify(message='Please interact with R1 at least 5 times. Your interactions: ' + err_int), 500
+            err_stmt = "PLEASE INTERACT WITH R1 AT LEAST 5 TIMES. YOU INTERACTED: " + err_int + " TIMES"
+            return render_template("fail_interactions.html", error_statement=err_stmt)
         else:
-            write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score, "R1")
+            write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score, "R1",
+                          articles_liked_per_interaction, unexp_articles_liked_per_interaction, nInteractionsWithR1,
+                          nInteractionsWithR2)
             n = 2  # no of samples from each category
             to_display_df = df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(drop=True)
             return render_template("news_table_nr2.html", column_names=disp_headings,
@@ -171,4 +176,4 @@ def nr2():
 
 
 if __name__ == '__main__':
-    application.run(DEBUG=True)
+    application.run(DEBUG=False)

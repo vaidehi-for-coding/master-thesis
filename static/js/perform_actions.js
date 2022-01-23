@@ -2,17 +2,17 @@ var liked_news = [];
 var liked_cat = [];
 var nLikedPerInteraction = 0
 
-$(document).ready(function() {
 
+$(document).ready(function() {
         // post on click of get more recommendations button for R1
         $('#recommend_btn').click(function() {
             ajaxReq("/news_recommender-1");
-    });
+        });
 
         // post on click of get more recommendations button for R2
         $('#recommend_btn_nr2').click(function() {
-            ajaxReq("/news_recommender-2");
-    });
+                ajaxReq("/news_recommender-2");
+        });
 
         function ajaxReq(toPage) {
             if (nLikedPerInteraction < 3){
@@ -47,7 +47,7 @@ $(document).ready(function() {
                         $("#elementToUpdate").html(response);
                     },
                     error: function (jqXHR, status, err) {
-                        // console.log(jqXHR, status, err);
+                        // alert("Error\n" + jqXHR.message);
                     }
                 });
             }
@@ -66,18 +66,12 @@ function toggleLike(clicked_btn) {
                 if (index > -1) {
                   liked_news.splice(index, 1);
                   liked_cat.splice(index, 1);
-                  // console.log("REM: ", liked_news)
-                  // sessionStorage.removeItem(row_data[1].textContent);
-                  // sessionStorage.removeItem(row_data[3].textContent);
                   nLikedPerInteraction--;
                 }
             }
             else{
                 liked_news.push(read_article)
                 liked_cat.push(row_data[3].textContent)
-                // console.log("ADD: ", liked_news)
-                // sessionStorage.setItem(row_data[1].textContent, '-');
-                // sessionStorage.setItem(row_data[3].textContent, '-');
                 nLikedPerInteraction++;
             }
       });
