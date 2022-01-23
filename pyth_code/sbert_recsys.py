@@ -85,17 +85,25 @@ def get_unexpected_recs(cosine_sim_list, n_liked_items):
 
 
 # return headline and desc combined into a single sentence
-def get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score):
+def get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score,
+                          articles_liked_per_interaction,
+                          unexp_articles_liked_per_interaction):
     # combine desc and headline and store index of previously liked articles
     combined_articles = []
+    unexp_tracker = 0
+    normal_tracker = 0
     for i in range(len(queries)):
         article_number = df.index[(df['short_description'] == queries[i])].tolist()
         previously_liked_news.append(article_number[0])
         heads = df.at[article_number[0], 'headline']
         combined_articles.append((heads + " " + queries[i]))
-
+        normal_tracker += 1
         if article_number[0] in serendipitious_articles:
             s_score.append(article_number[0])
+            unexp_tracker += 1
+
+    articles_liked_per_interaction.append(normal_tracker)
+    unexp_articles_liked_per_interaction.append(unexp_tracker)
 
     return combined_articles
 
@@ -103,44 +111,45 @@ def get_combined_articles(queries, df, previously_liked_news, serendipitious_art
 # return final article indices to be recommended
 def get_final_rec_indices(filtered_rec_list, closest_n, unexp_list, query_categories, SERENDIPITY, df):
     rec_indices = []
-    # cos_sim = []
 
     # aggressively recommend articles from the same category
     for each_query_result in filtered_rec_list:
         count = 0
         for idx, distance in each_query_result:
             if df.at[idx, 'category'] in query_categories:
-                # if (1 - distance) >= 0.5:
                 rec_indices.append(idx)
-                # cos_sim.append(1 - distance)
                 count += 1
             if count == closest_n:
                 break
 
     rec_np = np.array(rec_indices)
-    # sim_np = np.array(cos_sim)
     p = np.random.permutation(len(rec_np))
     rec_np = rec_np[p].tolist()
-    # sim_np = sim_np[p].tolist()
 
     if SERENDIPITY:
         rec_np = rec_np[:8]
-        # sim_np = sim_np[:8]
         # insert unexpected news at 3rd and 6th position in recommendations
         recs_shuffled = rec_np[:2] + [unexp_list[0]] + rec_np[2:4] + [unexp_list[1]] + rec_np[4:8]
-        # sim_np.extend([0, 0])
         return recs_shuffled
     else:
         return rec_np[:10]
 
 
-def write_to_file(user_id, prev_liked, prev_rec, serendipitous_articles, recommender):
+def write_to_file(user_id, prev_liked, prev_rec, serendipitous_articles, recommender, articles_liked_per_interaction,
+                  unexp_articles_liked_per_interaction, nInteractionsWithR1, nInteractionsWithR2):
     # datetime object containing current date and time
     now = datetime.now()
     dt_string = now.strftime("%d%m%Y%H%M%S")
     file_name = f'{os.getcwd()}/data/{user_id}_{dt_string}_{recommender}.txt'
     with open(file_name, 'w') as f:
-        f.write("Liked article indices: " + ' '.join(str(elem) for elem in prev_liked))
+        f.write("Interactions with R1: " + str(len(nInteractionsWithR1)))
+        f.write("\nInteractions with R2: " + str(len(nInteractionsWithR2)))
+        f.write("\nLiked article indices: " + ' '.join(str(elem) for elem in prev_liked))
+        f.write("\nNumber of articles liked per interaction: " + ' '.join(str(elem) for elem in
+                                                                          articles_liked_per_interaction))
         f.write("\nRecommended articles indices: " + ' '.join(str(elem) for elem in prev_rec))
-        f.write("\nSerendipitous articles that were liked indices: " + ' '.join(str(elem) for elem in serendipitous_articles))
+        f.write("\nSerendipitous articles that were liked indices: " + ' '.join(
+            str(elem) for elem in serendipitous_articles))
+        f.write("\nNumber of serendipitous articles liked per interaction: " + ' '.join(str(elem) for elem in
+                                                                                        unexp_articles_liked_per_interaction))
         f.close()
