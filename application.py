@@ -108,13 +108,13 @@ def nr1():
         to_display_df = df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(drop=True)
         return render_template("news_table.html", column_names=disp_headings,
                                row_data=list(to_display_df[act_heading].values.tolist()),
-                               like_col="Like it?", link_col="Link", zip=zip)
+                               like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR1), zip=zip)
     else:
         predictions = recommend_movies(serendipity)
         nInteractionsWithR1.append(1)
         return render_template("news_table.html", column_names=disp_headings_2,
                                row_data=list(predictions[act_heading_2].values.tolist()),
-                               like_col="Like it?", link_col="Link", zip=zip)
+                               like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR1), zip=zip)
 
 
 def recommend_movies(serendipity):
@@ -166,13 +166,13 @@ def nr2():
             to_display_df = df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(drop=True)
             return render_template("news_table_nr2.html", column_names=disp_headings,
                                    row_data=list(to_display_df[act_heading].values.tolist()),
-                                   like_col="Like it?", link_col="Link", zip=zip)
+                                   like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR2), zip=zip)
     else:
         predictions = recommend_movies(serendipity)
         nInteractionsWithR2.append(1)
         return render_template("news_table_nr2.html", column_names=disp_headings_2,
                                row_data=list(predictions[act_heading_2].values.tolist()),
-                               like_col="Like it?", link_col="Link", zip=zip)
+                               like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR2), zip=zip)
 
 
 if __name__ == '__main__':

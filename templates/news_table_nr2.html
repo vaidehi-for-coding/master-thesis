@@ -16,7 +16,24 @@
                 <span class="yellow">Recommender</span>
             </h1>
             <h2>Recommender 2<span class="red"> (R2)</span></h2>
-            <div class="informR2"><b>YOU'RE NOW INTERACTING WITH R2. FOLLOW THE SAME PROCESS AS BEFORE.</b></div>
+            <div class="informSystem"><b>YOU ARE INTERACTING WITH R2.</b></div>
+            <div class="informSystemInstructions"> The user interface works in the same way as R1, BUT R2 is using a
+                different approach to recommend news items to you. Please repeat the process you conducted with R1
+                and observe any changes or differences you may notice in the items recommended to you.</div>
+            <div class="informSystem"><b>YOUR INTERACTIONS - {{ noOfInteractions }}</b></div>
+
+            {% if noOfInteractions == 5 %}
+{#                <div class="alert">#}
+{#                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>#}
+                    <script>
+                        alert("The 'Go to Survey' button is now activated. You may now proceed to the survey. Click 'Go to " +
+                            "Survey' at the bottom-right of the page. " +
+                              "You can also choose to interact more times with R2 and then continue to the survey" +
+                              " if you'd like.");
+                    </script>
+{#                </div>#}
+            {% endif %}
+
             <div id="tableDiv">
             <!-- Dataframe in a table -->
                 <table class="news_table">
@@ -57,10 +74,21 @@
 
             <br><br>
 
-             <div class="container">
-                <a href="/survey" id="survey-btn" target="_blank"><span>Go to Survey</span></a>
-             </div>
+            {% if noOfInteractions >= 5 %}
+                 <div class="container">
+                    <a href="/survey" id="survey-btn" target="_blank"><span>Go to Survey</span></a>
+                 </div>
+            {% endif %}
 
         </div>
+
+    {% if noOfInteractions == 0 %}
+            <script>
+                alert("You will now be interacting with R2. While the user interface works in the same way, R2 is using a " +
+                    "different approach to recommend news items to you. Please repeat the process you conducted with R1 " +
+                    "and observe any changes or differences you may notice in the items recommended to you.");
+            </script>
+    {% endif %}
+
     </body>
 </html>
