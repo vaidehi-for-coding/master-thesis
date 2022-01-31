@@ -198,6 +198,7 @@ def nr2():
 @application.route('/categories', methods=['GET'])
 def getUserCategories():
     user_categories = df["category"].unique()
+    categories.clear()
     categories.extend(user_categories)
     return render_template("news_categories.html", category=sorted(categories), column_names=["Category", "Like it?"])
 
