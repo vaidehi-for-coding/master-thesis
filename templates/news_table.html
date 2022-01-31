@@ -22,7 +22,7 @@
                 a thumbs-up to 3-5 items that you like/catch your eye. Then click on Get Recommendations. Once again
                 give a thumbs-up to 3-5 articles from the list of 10 items presented to you and repeat the process
                 AT LEAST 5 times. Try to observe the items you're recommended.</div>
-            <div class="informSystem"><b>YOUR INTERACTIONS - {{ noOfInteractions }}</b></div>
+            <div class="informSystem"><b>YOU INTERACTED - {{ noOfInteractions }}</b></div>
 
             <div id="tableDiv">
             <!-- Dataframe in a table -->
@@ -40,7 +40,7 @@
                                 {% for col, row_ in zip(column_names, row) %}
                                     {% if col == like_col %}
                                         <td>
-                                            <i class="fa fa-thumbs-up fa-lg" title="double-click!" aria-hidden="true" id="green" onclick="toggleLike(this)">
+                                            <i class="fa fa-thumbs-up fa-2x" title="double-click!" aria-hidden="true" id="green" onclick="toggleLike(this)">
                                             </i>
                                         </td>
                                     {% elif col == link_col %}
@@ -56,17 +56,17 @@
                      </tbody>
                 </table>
             </div>
-            <br><br>
+            <br>
 
             <div class="container">
                 <a href="#" id="recommend_btn"><span>Get Recommendations</span></a>
             </div>
 
-            <br><br>
+            <br>
 
             {% if noOfInteractions >= 5 %}
                  <div class="container">
-                     <a href="/news_recommender-2" id="go_r2" target="_blank" onload=""><span>Go to R2</span></a>
+                     <a href="/news_recommender-2" id="go_r2" onload=""><span>Go to R2</span></a>
                  </div>
             {% endif %}
         </div>

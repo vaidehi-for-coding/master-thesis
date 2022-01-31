@@ -1,6 +1,7 @@
 var liked_news = [];
 var liked_cat = [];
 var nLikedPerInteraction = 0
+var cat_chosen = []
 
 
 $(document).ready(function() {
@@ -12,6 +13,30 @@ $(document).ready(function() {
         // post on click of get more recommendations button for R2
         $('#recommend_btn_nr2').click(function() {
                 ajaxReq("/news_recommender-2");
+        });
+
+        $('#category_btn').click(function() {
+            if (cat_chosen.length < 7){
+                window.alert("Select at least 7 categories!")
+            } else {
+                let cat_data = JSON.stringify(cat_chosen);
+                $.ajax({
+                    type: "GET",
+                    contentType: "application/json;charset=utf-8",
+                    //url: "/news_recommender-1/?categoriesChosen="+cat_data,
+                    url: "/news_recommender-1",
+                    data: {categoriesChosen: cat_data},
+                    traditional: "true",
+                    success: function (response) {
+                        //$("#elementToUpdate").html(response);
+                        window.location = "/news_recommender-1?categoriesChosen=" + cat_data
+                        //window.location.replace("/news_recommender-1?categoriesChosen="+cat_data)
+                    },
+                    error: function (jqXHR, status, err) {
+                        // alert("Error\n" + jqXHR.message);
+                    }
+                });
+            }
         });
 
         function ajaxReq(toPage) {
@@ -79,4 +104,21 @@ function toggleLike(clicked_btn) {
 
 
 
-
+function toggleCat(user_cat) {
+        let row = user_cat.closest("tr");
+        let row_data = row.getElementsByTagName("td");
+        let liked_category = row_data[0].textContent
+        liked_category = liked_category.replace("&", 'AND');
+        console.log(liked_category)
+        user_cat.addEventListener('change', function() {
+            if (cat_chosen.includes(liked_category)) {
+                const index = cat_chosen.indexOf(liked_category)
+                if (index > -1) {
+                  cat_chosen.splice(index, 1);
+                }
+            }
+            else{
+                cat_chosen.push(liked_category)
+            }
+      });
+}

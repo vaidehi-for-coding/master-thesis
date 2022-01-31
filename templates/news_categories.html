@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="../static/style_category.css" rel="stylesheet" type="text/css">
+<script src="../static/js/jquery-3.3.1.js"></script>
+<script type = "text/javascript" src="../static/js/perform_actions.js"></script>
+<script src="https://use.fontawesome.com/fe459689b4.js"></script>
+<title>News Recommender</title>
+</head>
+<body>
+    <h1>
+        <span class="blue">&lt;</span>NEWS<span class="blue">&gt;</span>
+        <span class="yellow">Recommender</span>
+    </h1>
+    <h2>CHOOSE AT LEAST 7 CATEGORIES YOU WOULD LIKE READING FROM</h2>
+
+    <div id="tableDiv">
+        <table class="category_table">
+             <thead>
+                <tr>
+                    {% for col in column_names %}
+                        <th><h1>{{col}}</h1></th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for each in category %}
+                    <tr class="active-row">
+                        <td>{{each}}</td>
+                        <td><input type="checkbox" name="name1" onclick="toggleCat(this)" />&nbsp;</td>
+                    </tr>
+                {% endfor %}
+             </tbody>
+        </table>
+    </div>
+
+    <br>
+    <div class="user_study">
+        <button type="button" id="category_btn"><span>Go to R1</span></button>
+{#        <a href="/news_recommender-1" id="category_btn" target="_blank"><span>Continue to user study...</span></a>#}
+    </div>
+
+</body>
+</html>

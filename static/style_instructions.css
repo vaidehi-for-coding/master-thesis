@@ -21,6 +21,10 @@ h1 {
     color: #185875;
 }
 
+.yellow {
+    color: #FFF842;
+}
+
 
 p{
     color: #bbc3c8;
@@ -33,12 +37,14 @@ p{
 }
 
 ol{
-    color: #00ff7f;
+    /*color: #00ff7f;*/
+    color: whitesmoke;
     padding-left: 15%;
 }
 
 li{
     margin-top: 3px;
+    padding-right: 10%;
 }
 
 h2 {
@@ -61,8 +67,8 @@ h3{
     font-style: normal;
 }
 
-em{
-    color: #ff00ff;
+strong{
+    color: lawngreen;
 }
 
 .user_study{
