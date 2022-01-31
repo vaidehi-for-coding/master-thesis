@@ -14,6 +14,7 @@ NEWS_ARTICLES_JSON = "huffpost_dataset.json"
 def get_df():
     news = pd.read_json(NEWS_ARTICLES_JSON, lines=True)
     news = clean_df(news)
+    replace_col_names(news)
     return news
 
 
@@ -27,6 +28,14 @@ def clean_df(df):
     df = df[~duplicated_articles_series]
     df.index = range(df.shape[0])  # reindex the dataframe
     return df
+
+
+# replaces similar category names by a single name
+def replace_col_names(df):
+    df['category'].replace(
+        {"CULTURE & ARTS": "ARTS & CULTURE", "ARTS": "ARTS & CULTURE", "STYLE": "STYLE & BEAUTY",
+         "PARENTS": "PARENTING", "WORLDPOST": "WORLD NEWS", "THE WORLDPOST": "WORLD NEWS", "FIFTY": "SENIOR CITIZEN"},
+        inplace=True)
 
 
 # returns a sorted hashmap of article index vs cosine similarity (highest to lowest) and unexpected article indices
@@ -76,10 +85,11 @@ def get_unexpected_recs(cosine_sim_list, n_liked_items):
     # calculate unexpectedness of each article
     unexpectedness = 1 - (np.sum(item_item_mat, axis=0) / n_liked_items)
     unexpectedness = np.around(unexpectedness, decimals=4)
-    idx_min = np.argpartition(unexpectedness, 2)
+    idx_min = np.argpartition(unexpectedness, 3)
 
     unexpected_indices_act = [sorted_articles[0][idx_min[0]][0],
-                              sorted_articles[0][idx_min[1]][0]]
+                              sorted_articles[0][idx_min[1]][0],
+                              sorted_articles[0][idx_min[2]][0]]
 
     return unexpected_indices_act
 
@@ -127,20 +137,21 @@ def get_final_rec_indices(filtered_rec_list, closest_n, unexp_list, query_catego
     rec_np = rec_np[p].tolist()
 
     if SERENDIPITY:
-        rec_np = rec_np[:8]
-        # insert unexpected news at 3rd and 6th position in recommendations
-        recs_shuffled = rec_np[:2] + [unexp_list[0]] + rec_np[2:4] + [unexp_list[1]] + rec_np[4:8]
+        rec_np = rec_np[:7]
+        # insert unexpected news at 3rd and 5th and 7th position in recommendations
+        recs_shuffled = rec_np[:2] + [unexp_list[0]] + rec_np[2:3] + [unexp_list[1]] + rec_np[3:4] + [
+            unexp_list[2]] + rec_np[4:8]
         return recs_shuffled
     else:
         return rec_np[:10]
 
 
-def write_to_file(user_id, prev_liked, prev_rec, serendipitous_articles, recommender, articles_liked_per_interaction,
+def write_to_file(user_id, prev_liked, prev_rec, serendipitous_articles, articles_liked_per_interaction,
                   unexp_articles_liked_per_interaction, nInteractionsWithR1, nInteractionsWithR2):
     # datetime object containing current date and time
     now = datetime.now()
     dt_string = now.strftime("%d%m%Y%H%M%S")
-    file_name = f'{os.getcwd()}/data/{user_id}_{dt_string}_{recommender}.txt'
+    file_name = f'{os.getcwd()}/data/{user_id}_{dt_string}.txt'
     with open(file_name, 'w') as f:
         f.write("Interactions with R1: " + str(len(nInteractionsWithR1)))
         f.write("\nInteractions with R2: " + str(len(nInteractionsWithR2)))

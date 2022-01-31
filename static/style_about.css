@@ -42,6 +42,21 @@ img{
     margin-right: auto;
 }
 
+.caption {
+    /* Make the caption a block so it occupies its own line. */
+    display: block;
+    vertical-align: top;
+    text-align: center;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 300;
+    /*width: 120px;*/
+    color: #bbc3c8;
+}
+
+a:link{
+   color: #bbc3c8;
+}
+
 h2 {
     font-size:1em;
     font-weight: 300;

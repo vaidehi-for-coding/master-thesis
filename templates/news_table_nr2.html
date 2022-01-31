@@ -20,7 +20,7 @@
             <div class="informSystemInstructions"> The user interface works in the same way as R1, BUT R2 is using a
                 different approach to recommend news items to you. Please repeat the process you conducted with R1
                 and observe any changes or differences you may notice in the items recommended to you.</div>
-            <div class="informSystem"><b>YOUR INTERACTIONS - {{ noOfInteractions }}</b></div>
+            <div class="informSystem"><b>YOU INTERACTED - {{ noOfInteractions }}</b></div>
 
             {% if noOfInteractions == 5 %}
 {#                <div class="alert">#}
@@ -50,7 +50,7 @@
                                 {% for col, row_ in zip(column_names, row) %}
                                     {% if col == like_col %}
                                         <td>
-                                            <i class="fa fa-thumbs-up fa-lg" id="green" title="double-click!" aria-hidden="true" onclick="toggleLike(this)">
+                                            <i class="fa fa-thumbs-up fa-2x" id="green" title="double-click!" aria-hidden="true" onclick="toggleLike(this)">
                                             </i>
                                         </td>
                                     {% elif col == link_col %}
@@ -66,17 +66,17 @@
                      </tbody>
                 </table>
             </div>
-            <br><br>
+            <br>
 
             <div class="container">
                 <a href="#" id="recommend_btn_nr2"><span>Get Recommendations</span></a>
             </div>
 
-            <br><br>
+            <br>
 
             {% if noOfInteractions >= 5 %}
                  <div class="container">
-                    <a href="/survey" id="survey-btn" target="_blank"><span>Go to Survey</span></a>
+                    <a href="/survey" id="survey-btn"><span>Go to Survey</span></a>
                  </div>
             {% endif %}
 

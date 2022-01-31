@@ -1,5 +1,5 @@
 # flask imports
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_cors import CORS
 
 # python imports
@@ -51,6 +51,8 @@ df = get_df()
 all_corpus_embeddings = np.load(CORPUS_EMBEDDINGS)
 # add column to dataframe
 df["rate"] = ''
+# store categories user liked
+categories = []
 
 # generate unique id per session
 unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
@@ -59,16 +61,22 @@ unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in 
 # home page
 @application.route('/', methods=['GET'])
 def main():
-    if SERENDIPITY:
-        return render_template("about_rc_and_fb.html")
-    else:
-        return render_template("about_only_rc.html")
+    return render_template("welcome.html")
 
 
 # instructions page
 @application.route('/instructions', methods=['POST', 'GET'])
 def instructions():
     return render_template("about_us.html")
+
+
+# welcome page
+@application.route('/about', methods=['POST', 'GET'])
+def about_rc():
+    if SERENDIPITY:
+        return render_template("about_rc_and_fb.html")
+    else:
+        return render_template("about_only_rc.html")
 
 
 # filterbubble page
@@ -85,8 +93,9 @@ def go_to_survey():
         err_stmt = "PLEASE INTERACT WITH R2 AT LEAST 5 TIMES. YOU INTERACTED: " + err_int + " TIMES"
         return render_template("fail_interactions.html", error_statement=err_stmt)
     else:
-        write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score, "R2",
-                      articles_liked_per_interaction, unexp_articles_liked_per_interaction, nInteractionsWithR1, nInteractionsWithR2)
+        write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score,
+                      articles_liked_per_interaction, unexp_articles_liked_per_interaction, nInteractionsWithR1,
+                      nInteractionsWithR2)
         if SERENDIPITY:
             survey_link = "http://limesurvey.digitaltransformation.bayern/index.php/353413?lang=en&studyID=" + unq_id + \
                           "&sScore=" + str(len(s_score))
@@ -104,11 +113,21 @@ def go_to_survey():
 def nr1():
     serendipity = False
     if request.method == 'GET':
+        user_categories = json.loads(request.args['categoriesChosen'])
+        user_categories = [w.replace('AND', '&') for w in user_categories]
+
+        # CHECK
+        categories.clear()
+        categories.extend(user_categories)
+
         n = 2  # no of samples from each category
-        to_display_df = df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(drop=True)
+        to_display_df = df.loc[df['category'].isin(user_categories)]
+        to_display_df = to_display_df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(
+            drop=True)
         return render_template("news_table.html", column_names=disp_headings,
                                row_data=list(to_display_df[act_heading].values.tolist()),
-                               like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR1), zip=zip)
+                               like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR1),
+                               zip=zip)
     else:
         predictions = recommend_movies(serendipity)
         nInteractionsWithR1.append(1)
@@ -123,7 +142,8 @@ def recommend_movies(serendipity):
     query_categories = json.loads(request_data['d2'])  # cat
 
     # combine desc and headline for better semantic similarity measure
-    combined_queries = get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score, articles_liked_per_interaction, unexp_articles_liked_per_interaction)
+    combined_queries = get_combined_articles(queries, df, previously_liked_news, serendipitious_articles, s_score,
+                                             articles_liked_per_interaction, unexp_articles_liked_per_interaction)
 
     # create embeddings for liked news
     query_embeddings = model.encode(combined_queries, convert_to_tensor=True)
@@ -159,20 +179,27 @@ def nr2():
             err_stmt = "PLEASE INTERACT WITH R1 AT LEAST 5 TIMES. YOU INTERACTED: " + err_int + " TIMES"
             return render_template("fail_interactions.html", error_statement=err_stmt)
         else:
-            write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score, "R1",
-                          articles_liked_per_interaction, unexp_articles_liked_per_interaction, nInteractionsWithR1,
-                          nInteractionsWithR2)
             n = 2  # no of samples from each category
-            to_display_df = df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(drop=True)
+            to_display_df = df.loc[df['category'].isin(categories)]
+            to_display_df = to_display_df.groupby('category').apply(lambda x: x.sample(min(n, len(x)))).reset_index(
+                drop=True)
             return render_template("news_table_nr2.html", column_names=disp_headings,
                                    row_data=list(to_display_df[act_heading].values.tolist()),
-                                   like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR2), zip=zip)
+                                   like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR2),
+                                   zip=zip)
     else:
         predictions = recommend_movies(serendipity)
         nInteractionsWithR2.append(1)
         return render_template("news_table_nr2.html", column_names=disp_headings_2,
                                row_data=list(predictions[act_heading_2].values.tolist()),
                                like_col="Like it?", link_col="Link", noOfInteractions=len(nInteractionsWithR2), zip=zip)
+
+
+@application.route('/categories', methods=['GET'])
+def getUserCategories():
+    user_categories = df["category"].unique()
+    categories.extend(user_categories)
+    return render_template("news_categories.html", category=sorted(categories), column_names=["Category", "Like it?"])
 
 
 if __name__ == '__main__':
