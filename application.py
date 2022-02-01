@@ -120,6 +120,7 @@ def nr1():
         user_categories = [w.replace('AND', '&') for w in user_categories]
 
         # CHECK
+        reset_global_vars()
         categories.clear()
         categories.extend(user_categories)
 
