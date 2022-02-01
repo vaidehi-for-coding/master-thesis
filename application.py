@@ -57,6 +57,20 @@ categories = []
 # generate unique id per session
 unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
+# clear arrays before use
+def reset_global_vars():
+    previously_liked_news.clear()
+    articles_liked_per_interaction.clear()
+    previously_rec_news.clear()
+    serendipitious_articles.clear()
+    unexp_articles_liked_per_interaction.clear()
+    s_score.clear()
+    nInteractionsWithR1.clear()
+    nInteractionsWithR2.clear()
+
+
+# clear all globally declared arrays
+reset_global_vars()
 
 # home page
 @application.route('/', methods=['GET'])
