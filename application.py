@@ -57,20 +57,6 @@ categories = []
 # generate unique id per session
 unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
-# clear arrays before use
-def reset_global_vars():
-    previously_liked_news.clear()
-    articles_liked_per_interaction.clear()
-    previously_rec_news.clear()
-    serendipitious_articles.clear()
-    unexp_articles_liked_per_interaction.clear()
-    s_score.clear()
-    nInteractionsWithR1.clear()
-    nInteractionsWithR2.clear()
-
-
-# clear all globally declared arrays
-reset_global_vars()
 
 # home page
 @application.route('/', methods=['GET'])
@@ -113,12 +99,14 @@ def go_to_survey():
         if SERENDIPITY:
             survey_link = "http://limesurvey.digitaltransformation.bayern/index.php/353413?lang=en&studyID=" + unq_id + \
                           "&sScore=" + str(len(s_score))
-            webbrowser.open(survey_link, new=1, autoraise=True)
+            reset_global_vars()
+            # webbrowser.open(survey_link, new=1, autoraise=True)
             return render_template("survey.html", survey_link=survey_link)
         else:  # go to some other link
             survey_link = "http://limesurvey.digitaltransformation.bayern/index.php/917924?lang=en&studyID=" + unq_id + \
                           "&sScore=" + str(len(s_score))
-            webbrowser.open(survey_link, new=1, autoraise=True)
+            reset_global_vars()
+            # webbrowser.open(survey_link, new=1, autoraise=True)
             return render_template("survey.html", survey_link=survey_link)
 
 
@@ -215,6 +203,17 @@ def getUserCategories():
     categories.clear()
     categories.extend(user_categories)
     return render_template("news_categories.html", category=sorted(categories), column_names=["Category", "Like it?"])
+
+# clear arrays before use
+def reset_global_vars():
+    previously_liked_news.clear()
+    articles_liked_per_interaction.clear()
+    previously_rec_news.clear()
+    serendipitious_articles.clear()
+    unexp_articles_liked_per_interaction.clear()
+    s_score.clear()
+    nInteractionsWithR1.clear()
+    nInteractionsWithR2.clear()
 
 
 if __name__ == '__main__':
