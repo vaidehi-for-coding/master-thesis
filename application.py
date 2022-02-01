@@ -61,6 +61,7 @@ unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in 
 # home page
 @application.route('/', methods=['GET'])
 def main():
+    reset_global_vars()
     return render_template("welcome.html")
 
 
