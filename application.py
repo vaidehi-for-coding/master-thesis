@@ -54,9 +54,6 @@ df["rate"] = ''
 # store categories user liked
 categories = []
 
-# generate unique id per session
-unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
-
 
 # home page
 @application.route('/', methods=['GET'])
@@ -94,6 +91,8 @@ def go_to_survey():
         err_stmt = "PLEASE INTERACT WITH R2 AT LEAST 5 TIMES. YOU INTERACTED: " + err_int + " TIMES"
         return render_template("fail_interactions.html", error_statement=err_stmt)
     else:
+        # generate unique id per session
+        unq_id = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
         write_to_file(unq_id, previously_liked_news, previously_rec_news, s_score,
                       articles_liked_per_interaction, unexp_articles_liked_per_interaction, nInteractionsWithR1,
                       nInteractionsWithR2)
